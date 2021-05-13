@@ -1,0 +1,15 @@
+server:
+  port: 1000
+
+spring:
+  application:
+    name: inco-gateway
+
+  cloud:
+    gateway:
+      routes:
+      - id: path_route
+        uri: http://c.biancheng.net
+        predicates:
+        - Path=/spring_cloud
+
