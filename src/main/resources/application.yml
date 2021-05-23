@@ -9,6 +9,21 @@ spring:
     port: 6379
 
   cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8888
+      config:
+        server-addr: localhost:8888
+        file-extension: yaml #文件类型
+        #prefix: inco-xtgl #dataid的文件名
+        group: dev
+        #namespace:
+        #shared-dataids: a.yaml,b.yaml #多个配置文件拆分时可以使用
+        #refreshable-dataids: a.yaml,b.yaml #多个配置文件拆分时可以使用 自动刷新
+#网关限流 可以用sentinel 不用hystrix 若在网关流控控制台上看到了 URL 资源，就是此配置项没有置为 false
+    sentinel:
+      filter:
+        enabled: false
     gateway:
       discovery:
         locator:
@@ -38,24 +53,6 @@ spring:
             - Path=/inco-xkgl/**
           filters:
             - StripPrefix=1
-            - name: Hystrix
-              args:
-                name: default
-                fallbackUri: forward:/defaultfallback # 只有该id下的服务会降级
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 1 #允许用户每秒处理多少个请求。
-                redis-rate-limiter.burstCapacity: 1 #令牌桶的容量，允许在 1s 内完成的最大请求数。
-                key-resolver: "#{@ipKeyResolver}"
-
-            #重试
-            - name: Retry
-              args:
-                retries: 3 #重试次数，默认值是 3 次。
-                series: SERVER_ERROR #状态码配置（分段），符合某段状态码才会进行重试逻辑，默认值是 SERVER_ERROR，值是 5，也就是 5XX（5 开头的状态码），共有 5 个值，代码如下所示。
-                statuses: INTERNAL_SERVER_ERROR
-                methods: GET
-                exceptions: java.lang.Exception
 
 
         - id: inco-xtgl
@@ -64,34 +61,29 @@ spring:
             - Path=/inco-xtgl/**
           filters:
             - StripPrefix=1
-             #熔断降级 当配置了熔断降级时 gateway的全局异常处理无效
-            - name: Hystrix
-              args:
-                name: default
-                fallbackUri: forward:/defaultfallback # 只有该id下的服务会降级
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 1 #允许用户每秒处理多少个请求。
-                redis-rate-limiter.burstCapacity: 1 #令牌桶的容量，允许在 1s 内完成的最大请求数。
-                key-resolver: "#{@ipKeyResolver}"
-            #重试
-            - name: Retry
-              args:
-                retries: 3 #重试次数，默认值是 3 次。
-                series: SERVER_ERROR #状态码配置（分段），符合某段状态码才会进行重试逻辑，默认值是 SERVER_ERROR，值是 5，也就是 5XX（5 开头的状态码），共有 5 个值，代码如下所示。
-                statuses: INTERNAL_SERVER_ERROR
-                methods: GET
-                exceptions: java.lang.Exception
-            #routes:
-            #  - id: path_route
-            #   uri: http://c.biancheng.net
-            # predicates:
-            # - Path=/spring_cloud
 
-            #   - id: user-service
-            #  uri: lb://user-service
-            #  predicates:
-          #    - Path=/user-service/**
+
+#             #熔断降级 当配置了熔断降级时 gateway的全局异常处理无效
+#            - name: Hystrix
+#              args:
+#                name: default
+#                fallbackUri: forward:/defaultfallback # 只有该id下的服务会降级
+#            #限流
+#
+#            - name: RequestRateLimiter
+#              args:
+#                redis-rate-limiter.replenishRate: 1 #允许用户每秒处理多少个请求。
+#                redis-rate-limiter.burstCapacity: 1 #令牌桶的容量，允许在 1s 内完成的最大请求数。
+#                key-resolver: "#{@ipKeyResolver}"
+#            #重试
+#            - name: Retry
+#              args:
+#                retries: 3 #重试次数，默认值是 3 次。
+#                series: SERVER_ERROR #状态码配置（分段），符合某段状态码才会进行重试逻辑，默认值是 SERVER_ERROR，值是 5，也就是 5XX（5 开头的状态码），共有 5 个值，代码如下所示。
+#                statuses: INTERNAL_SERVER_ERROR
+#                methods: GET
+#                exceptions: java.lang.Exception
+
 
 
 hystrix:
@@ -121,6 +113,9 @@ ribbon:
   ConnectTimeout: 500
   ExecTimeout: 500
   MaxAutoRetries: 1 #最好设置超时重试
+
+
+
 
 
 eureka:
